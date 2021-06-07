@@ -63,7 +63,7 @@ static final boolean useFullScreenCaps = true;
 // running the corresponding LEDstream code.  See notes later in the code...
 // in some situations you may want to entirely comment out that block.
 
-static final int timeout = 5000; // 5 seconds
+static final int timeout = 8000; // 5 seconds
 
 // PER-DISPLAY INFORMATION ---------------------------------------------------
 
@@ -86,7 +86,8 @@ static final int timeout = 5000; // 5 seconds
 
 static final int displays[][] = new int[][] {
    //{0,9,6} // Screen 0, 9 LEDs across, 6 LEDs down
-  {1,9,6} // Screen 1, also 9 LEDs across and 6 LEDs down
+ // {1,4,4} // Screen 1, also 9 LEDs across and 6 LEDs down
+  {1,9,6}
 };
 
 // PER-LED INFORMATION -------------------------------------------------------
@@ -103,13 +104,23 @@ static final int displays[][] = new int[][] {
 // the perimeter of a single screen, with a one pixel gap at the bottom to
 // accommodate a monitor stand.  Modify this to match your own setup:
 
+/*static final int leds[][] = new int[][] {
+  {0,1,3}, {0,0,3}, // Bottom edge, left half
+  {0,0,2}, {0,0,1}, // Left edge
+  {0,0,0}, {0,1,0}, {0,2,0}, {0,3,0}, // Top edge
+  {0,3,1}, {0,3,2}, // Right edge
+  {0,3,3}, {0,2,3}, // Bottom edge, right half
+};*/
+
 static final int leds[][] = new int[][] {
-  {0,3,5}, {0,2,5}, {0,1,5}, {0,0,5}, // Bottom edge, left half
-  {0,0,4}, {0,0,3}, {0,0,2}, {0,0,1}, // Left edge
+  {0,0,5}, {0,1,5}, {0,2,5}, {0,3,5}, {0,4,5}, {0,5,5}, {0,6,5}, {0,7,5}, {0,8,5}, // Bottom edge, left half
+  {0,0,5}, {0,0,4}, {0,0,3}, {0,0,2}, {0,0,1},  // Left edge
   {0,0,0}, {0,1,0}, {0,2,0}, {0,3,0}, {0,4,0}, // Top edge
            {0,5,0}, {0,6,0}, {0,7,0}, {0,8,0}, // More top edge
-  {0,8,1}, {0,8,2}, {0,8,3}, {0,8,4}, // Right edge
-  {0,8,5}, {0,7,5}, {0,6,5}, {0,5,5}  // Bottom edge, right half
+  {0,8,1}, {0,8,2}, {0,8,3}, {0,8,4}, {0,8,5},  // Right edge
+ // {0,8,5}, {0,7,5}, {0,6,5}, {0,5,5}  // Bottom edge, right half
+ 
+};
 
 /* Hypothetical second display has the same arrangement as the first.
    But you might not want both displays completely ringed with LEDs;
@@ -121,7 +132,6 @@ static final int leds[][] = new int[][] {
   {1,8,1}, {1,8,2}, {1,8,3}, {1,8,4}, // Right edge
   {1,8,5}, {1,7,5}, {1,6,5}, {1,5,5}  // Bottom edge, right half
 */
-};
 
 // GLOBAL VARIABLES ---- You probably won't need to modify any of this -------
 
@@ -138,6 +148,7 @@ int[][]          pixelOffset = new int[leds.length][256],
 PImage[]         preview     = new PImage[displays.length];
 Serial           port;
 DisposeHandler   dh; // For disabling LEDs on exit
+int ada_recived = 0;
 
 // INITIALIZATION ------------------------------------------------------------
 
@@ -154,14 +165,16 @@ void setup() {
   // Open serial port.  As written here, this assumes the Arduino is the
   // first/only serial device on the system.  If that's not the case,
   // change "Serial.list()[0]" to the name of the port to be used:
-  port = new Serial(this, Serial.list()[2], 115200);
+  //port = new Serial(this, Serial.list()[2], 115200);
   // Alternately, in certain situations the following line can be used
   // to detect the Arduino automatically.  But this works ONLY with SOME
   // Arduino boards and versions of Processing!  This is so convoluted
   // to explain, it's easier just to test it yourself and see whether
   // it works...if not, leave it commented out and use the prior port-
   // opening technique.
-  // port = openPort();
+  //port = openPort();
+  port = new Serial(this, "COM3", 115200);  
+  
   // And finally, to test the software alone without an Arduino connected,
   // don't open a port...just comment out the serial lines above.
 
@@ -238,10 +251,12 @@ void setup() {
       minBrightness / 3;
   }
 
+ // int width_screen = totalWidth * pixelSize;
+ // int height_screen = maxHeight * pixelSize;
   // Preview window shows all screens side-by-side
   //size(totalWidth * pixelSize, maxHeight * pixelSize, JAVA2D);
   noSmooth();
-
+  size(190, 120);
   // A special header / magic word is expected by the corresponding LED
   // streaming code running on the Arduino.  This only needs to be initialized
   // once (not in draw() loop) because the number of LEDs remains constant:
@@ -290,11 +305,30 @@ Serial openPort() {
     // Port open...watch for acknowledgement string...
     start = millis();
     while((millis() - start) < timeout) {
-      if((s.available() >= 4) &&
-        ((ack = s.readString()) != null) &&
-        ack.contains("Ada\n")) {
-          return s; // Got it!
+      
+      while (s.available() > 0) {
+
+      String inBuffer = s.readString();  
+  
+      if (inBuffer != null) {
+  
+        println(inBuffer);
       }
+    }
+      /*if ( s.available() > 0 )
+      {
+         System.out.format("Recebeu serial: %s", s.read());
+      }
+      if(s.available() >= 3)
+      {
+        ack = s.readString();
+        System.out.format("Recebeu serial: %s", ack);
+        if ( ack.contains("Ada\n") )
+        {          
+         System.out.format("Recebeu Ada.");
+         return s; // Got it!
+        }
+      }       */      
     }
     // Connection timed out.  Close port and move on to the next.
     s.stop();
@@ -391,22 +425,47 @@ void draw () {
     // Update pixels in preview image
     preview[d].pixels[leds[i][2] * displays[d][1] + leds[i][1]] =
      (ledColor[i][0] << 16) | (ledColor[i][1] << 8) | ledColor[i][2];
+  } 
+  
+  if ( ada_recived == 0 )
+  {
+    if (port.available() > 3) {
+  
+    String inBuffer = port.readString();  
+  
+      if (inBuffer != null) {    
+        println(inBuffer);
+        if ( inBuffer.contains("Ada") )
+        {          
+         println("Recebeu Ada.");
+         ada_recived = 1;
+        }
+      }    
+    }
   }
 
-  if(port != null) port.write(serialData); // Issue data to Arduino
-
-  // Show live preview image(s)
-  scale(pixelSize);
-  for(i=d=0; d<nDisplays; d++) {
-    preview[d].updatePixels();
-    image(preview[d], i, 0);
-    i += displays[d][1] + 1;
+  if ( ada_recived == 1 )
+  {
+    if(port != null) port.write(serialData); // Issue data to Arduino
+  
+    // Show live preview image(s)
+    scale(pixelSize);
+    for(i=d=0; d<nDisplays; d++) {
+      preview[d].updatePixels();
+      image(preview[d], i, 0);
+      i += displays[d][1] + 1;
+    }
+  
+    //println(frameRate); // How are we doing?
+    
+    /*if ( port.available() > 0 )
+    {
+       System.out.format("Recebeu serial: %c", port.read());
+    }*/
+  
+    // Copy LED color data to prior frame array for next pass
+    arraycopy(ledColor, 0, prevColor, 0, ledColor.length);
   }
-
-  println(frameRate); // How are we doing?
-
-  // Copy LED color data to prior frame array for next pass
-  arraycopy(ledColor, 0, prevColor, 0, ledColor.length);
 }
 
 
