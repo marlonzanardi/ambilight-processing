@@ -87,7 +87,7 @@ static final int timeout = 8000; // 5 seconds
 static final int displays[][] = new int[][] {
    //{0,9,6} // Screen 0, 9 LEDs across, 6 LEDs down
  // {1,4,4} // Screen 1, also 9 LEDs across and 6 LEDs down
-  {1,9,6}
+  {1,3,3}
 };
 
 // PER-LED INFORMATION -------------------------------------------------------
@@ -112,15 +112,23 @@ static final int displays[][] = new int[][] {
   {0,3,3}, {0,2,3}, // Bottom edge, right half
 };*/
 
+//e = new int[3][0];
+
 static final int leds[][] = new int[][] {
-  {0,0,5}, {0,1,5}, {0,2,5}, {0,3,5}, {0,4,5}, {0,5,5}, {0,6,5}, {0,7,5}, {0,8,5}, // Bottom edge, left half
-  {0,0,5}, {0,0,4}, {0,0,3}, {0,0,2}, {0,0,1},  // Left edge
-  {0,0,0}, {0,1,0}, {0,2,0}, {0,3,0}, {0,4,0}, // Top edge
-           {0,5,0}, {0,6,0}, {0,7,0}, {0,8,0}, // More top edge
-  {0,8,1}, {0,8,2}, {0,8,3}, {0,8,4}, {0,8,5},  // Right edge
+ /* {0,0,5}, {0,1,5}, {0,2,5}, {0,3,5}, {0,4,5}, {0,5,5}, //{0,6,5}, {0,7,5}, {0,8,5}, // Bottom edge, left half
+  {0,0,1}, {0,0,2}, //{0,0,3}, {0,0,2}, //{0,0,1},  // Left edge
+  {0,0,0}, {0,1,0}, {0,2,0}, {0,3,0}, {0,4,0}, {0,5,0}, //{0,6,0}, {0,7,0}, {0,8,0}, // Top edge
+  {0,8,1}, {0,8,2}, //{0,8,3}, {0,8,4}, {0,8,5},  // Right edge*/
  // {0,8,5}, {0,7,5}, {0,6,5}, {0,5,5}  // Bottom edge, right half
  
+ {0,0,0}, {0,1,0}, {0,2,0},
+ {0,0,1},
+ {0,0,2}, {0,1,2}, {0,2,2},
+ {0,2,1}, 
 };
+
+
+ // leds[3][0] = 0;
 
 /* Hypothetical second display has the same arrangement as the first.
    But you might not want both displays completely ringed with LEDs;
@@ -134,6 +142,16 @@ static final int leds[][] = new int[][] {
 */
 
 // GLOBAL VARIABLES ---- You probably won't need to modify any of this -------
+
+
+int qtd_top_led = 3;
+int qtd_side_left_led = 1;
+int qtd_side_right_led = 1;
+int qtd_bottom_led = 3;
+
+
+float[] randoms = new float[100];
+
 
 byte[]           serialData  = new byte[6 + leds.length * 3];
 short[][]        ledColor    = new short[leds.length][3],
@@ -152,7 +170,20 @@ int ada_recived = 0;
 
 // INITIALIZATION ------------------------------------------------------------
 
-void setup() {
+void setup() { 
+  
+  
+/*for (int i = 0; i < randoms.length; i++) {
+  randoms[i] = random(100);
+}*/
+  
+  //print(leds[3][0]);
+  
+  /*for (int i = 0; i<qtd_top_led ; i++)
+  {
+    leds[i][0] = 0;
+  }*/
+
   GraphicsEnvironment     ge;
   GraphicsConfiguration[] gc;
   GraphicsDevice[]        gd;
@@ -173,7 +204,7 @@ void setup() {
   // it works...if not, leave it commented out and use the prior port-
   // opening technique.
   //port = openPort();
-  port = new Serial(this, "COM3", 115200);  
+  //port = new Serial(this, "COM3", 115200);  
   
   // And finally, to test the software alone without an Arduino connected,
   // don't open a port...just comment out the serial lines above.
@@ -427,7 +458,7 @@ void draw () {
      (ledColor[i][0] << 16) | (ledColor[i][1] << 8) | ledColor[i][2];
   } 
   
-  if ( ada_recived == 0 )
+ /* if ( ada_recived == 0 )
   {
     if (port.available() > 3) {
   
@@ -442,11 +473,11 @@ void draw () {
         }
       }    
     }
-  }
+  }*/
 
-  if ( ada_recived == 1 )
-  {
-    if(port != null) port.write(serialData); // Issue data to Arduino
+  //if ( ada_recived == 1 )
+  //{
+   // if(port != null) port.write(serialData); // Issue data to Arduino
   
     // Show live preview image(s)
     scale(pixelSize);
@@ -454,7 +485,7 @@ void draw () {
       preview[d].updatePixels();
       image(preview[d], i, 0);
       i += displays[d][1] + 1;
-    }
+   // }
   
     //println(frameRate); // How are we doing?
     
