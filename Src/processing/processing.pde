@@ -84,11 +84,14 @@ static final int timeout = 8000; // 5 seconds
 // height of a grid of LED pixels attached to the perimeter of this display.
 // For example, '9,6' = 9 LEDs across, 6 LEDs down.
 
-static final int displays[][] = new int[][] {
+/*static final int displays[][] = new int[][] {
    //{0,9,6} // Screen 0, 9 LEDs across, 6 LEDs down
  // {1,4,4} // Screen 1, also 9 LEDs across and 6 LEDs down
-  {1,3,3}
-};
+  {0,15,10}
+};*/
+
+int define_bot_top = 15;
+int define_right_left = 10;
 
 // PER-LED INFORMATION -------------------------------------------------------
 
@@ -112,23 +115,20 @@ static final int displays[][] = new int[][] {
   {0,3,3}, {0,2,3}, // Bottom edge, right half
 };*/
 
-//e = new int[3][0];
-
-static final int leds[][] = new int[][] {
- /* {0,0,5}, {0,1,5}, {0,2,5}, {0,3,5}, {0,4,5}, {0,5,5}, //{0,6,5}, {0,7,5}, {0,8,5}, // Bottom edge, left half
-  {0,0,1}, {0,0,2}, //{0,0,3}, {0,0,2}, //{0,0,1},  // Left edge
-  {0,0,0}, {0,1,0}, {0,2,0}, {0,3,0}, {0,4,0}, {0,5,0}, //{0,6,0}, {0,7,0}, {0,8,0}, // Top edge
-  {0,8,1}, {0,8,2}, //{0,8,3}, {0,8,4}, {0,8,5},  // Right edge*/
- // {0,8,5}, {0,7,5}, {0,6,5}, {0,5,5}  // Bottom edge, right half
- 
+int qtd_top = define_bot_top;
+int qtd_side_left = define_right_left;
+int qtd_side_right = define_right_left;
+int qtd_bot = define_bot_top;
+int qtd_leds = 100;
+int[][] displays = new int[1][1];
+int[][] leds = new int[qtd_leds][qtd_side_right];
+/*static final int leds[][] = new int[][] {   
  {0,0,0}, {0,1,0}, {0,2,0},
  {0,0,1},
  {0,0,2}, {0,1,2}, {0,2,2},
  {0,2,1}, 
 };
-
-
- // leds[3][0] = 0;
+// leds[3][0] = 0;
 
 /* Hypothetical second display has the same arrangement as the first.
    But you might not want both displays completely ringed with LEDs;
@@ -142,14 +142,6 @@ static final int leds[][] = new int[][] {
 */
 
 // GLOBAL VARIABLES ---- You probably won't need to modify any of this -------
-
-
-int qtd_top_led = 3;
-int qtd_side_left_led = 1;
-int qtd_side_right_led = 1;
-int qtd_bottom_led = 3;
-
-
 float[] randoms = new float[100];
 
 
@@ -171,8 +163,64 @@ int ada_recived = 0;
 // INITIALIZATION ------------------------------------------------------------
 
 void setup() { 
+  displays[0] = new int [] {0,define_bot_top,define_right_left};
+  // Contador dos leds.
+  int contador = 0;
+  // Esquerda
+  for ( int j = 0; j < qtd_side_left; j++)
+  {
+    leds[contador] = new int [] {0,0,j};
+    contador++;
+    
+  }
+  // Top
+  for ( int j = 0; j < qtd_bot-1; j++)
+  {
+    leds[contador] = new int [] {0,j,0};
+    contador++;
+  }
+  // Direita
+  for ( int j = 0; j < qtd_side_right; j++)
+  {
+    leds[contador] = new int [] {0,qtd_bot-1,j};
+    contador++;
+  }
+  println(qtd_side_right);
+  // Bot
+  for ( int j = 1; j < qtd_bot-1; j++)
+  {
+    leds[contador] = new int [] {0,j,qtd_side_right-1};
+    contador++;
+  }
+    
   
   
+  /*leds[0] = new int [] {0,0,1};
+  leds[1] = new int [] {0,0,2};
+  leds[2] = new int [] {0,0,3};
+  leds[3] = new int [] {0,0,0};
+  leds[4] = new int [] {0,1,0};
+  leds[5] = new int [] {0,2,0};*/
+   //leds[0] = new int [] {0,0,1};
+   //leds[1][] = {0,0,1};
+   //leds[2][] = {0,0,1};
+   /*leds[1][1] = 1;
+   leds[2][1] = 1;
+   leds[3][1] = 1;
+   leds[4][1] = 1;
+   leds[5][1] = 1;
+   leds[6][1] = 1;
+   leds[7][1] = 1;
+   leds[8][1] = 1;
+   leds[9][1] = 1;*/
+   
+   //leds[1][0] = 1;
+   
+  /* leds[1][0] = 1;
+   leds[2][0] = 1;
+   leds[3][0] = 1;
+   leds[4][0] = 1;*/
+   
 /*for (int i = 0; i < randoms.length; i++) {
   randoms[i] = random(100);
 }*/
@@ -212,10 +260,10 @@ void setup() {
   // Initialize screen capture code for each display's dimensions.
   dispBounds = new Rectangle[displays.length];
   if(useFullScreenCaps == true) {
-    screenData = new int[displays.length][];
+    screenData = new int[displays.length+10][];
     // ledBounds[] not used
   } else {
-    ledBounds  = new Rectangle[leds.length];
+    ledBounds  = new Rectangle[leds.length+10];
     // screenData[][] not used
   }
   ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -287,7 +335,7 @@ void setup() {
   // Preview window shows all screens side-by-side
   //size(totalWidth * pixelSize, maxHeight * pixelSize, JAVA2D);
   noSmooth();
-  size(190, 120);
+  size(400, 250);
   // A special header / magic word is expected by the corresponding LED
   // streaming code running on the Arduino.  This only needs to be initialized
   // once (not in draw() loop) because the number of LEDs remains constant:
