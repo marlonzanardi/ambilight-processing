@@ -1,3 +1,24 @@
+// Joao:
+// Conectar arduino e reconhecer a partir de uma comunicao inicial
+
+// Verificar outro computador se a tela esta ficando dinamica
+
+// Jogar configuracao da tela para uma funcao
+
+/* Aguardar comandos do arduino para configurar variaveis de config da tela
+ Ao inicio da conversa com arduino receber os parametros de tela e configura-las
+ Ex: SET_PARAMS 10 15 14 17 01
+     COMANDO TOP BOT LEFT RIFGT QTD_LEDS 
+*/  
+
+
+
+
+
+//Marlon:
+// Comandos procolo embarcado app mobile
+// Modalidades de operação (modos de setup dos leds)
+// Envio dos parametros e armazenamento na momoria estatica
   
 // "Adalight" is a do-it-yourself facsimile of the Philips Ambilight concept
 // for desktop computers and home theater PCs.  This is the host PC-side code
@@ -63,7 +84,7 @@ static final boolean useFullScreenCaps = true;
 // running the corresponding LEDstream code.  See notes later in the code...
 // in some situations you may want to entirely comment out that block.
 
-static final int timeout = 8000; // 5 seconds
+static final int timeout = 5000; // 5 seconds
 
 // PER-DISPLAY INFORMATION ---------------------------------------------------
 
@@ -90,8 +111,8 @@ static final int timeout = 8000; // 5 seconds
   {0,15,10}
 };*/
 
-int define_bot_top = 15;
-int define_right_left = 10;
+int define_bot_top = 40;
+int define_right_left = 20;
 
 // PER-LED INFORMATION -------------------------------------------------------
 
@@ -119,7 +140,13 @@ int qtd_top = define_bot_top;
 int qtd_side_left = define_right_left;
 int qtd_side_right = define_right_left;
 int qtd_bot = define_bot_top;
-int qtd_leds = 100;
+int qtd_leds = 126;
+
+//int qtd_top = 10;
+//int qtd_side_left = 2;
+//int qtd_side_right = 2;
+//int qtd_bot = 10;
+//int qtd_leds = 120;
 int[][] displays = new int[1][1];
 int[][] leds = new int[qtd_leds][qtd_side_right];
 /*static final int leds[][] = new int[][] {   
@@ -159,10 +186,52 @@ PImage[]         preview     = new PImage[displays.length];
 Serial           port;
 DisposeHandler   dh; // For disabling LEDs on exit
 int ada_recived = 0;
+int status = 0;
 
 // INITIALIZATION ------------------------------------------------------------
 
+void set_inicial_load()
+{
+  qtd_top = 43;
+  qtd_side_left = 25;
+  qtd_side_right = 25;
+  qtd_bot = 43;
+  qtd_leds = 126;
+  displays = new int[1][1];
+  leds = new int[qtd_leds][qtd_side_right];
+  randoms = new float[100];
+  serialData  = new byte[6 + leds.length * 3];
+  prevColor   = new short[leds.length][3];
+  gamma       = new byte[256][3];// Alloc'd only if full-screen captures
+  preview     = new PImage[displays.length];
+}
+
 void setup() { 
+ 
+    // Open serial port.  As written here, this assumes the Arduino is the
+  // first/only serial device on the system.  If that's not the case,
+  // change "Serial.list()[0]" to the name of the port to be used:
+  //port = new Serial(this, Serial.list()[2], 115200);
+  // Alternately, in certain situations the following line can be used
+  // to detect the Arduino automatically.  But this works ONLY with SOME
+  // Arduino boards and versions of Processing!  This is so convoluted
+  // to explain, it's easier just to test it yourself and see whether
+  // it works...if not, leave it commented out and use the prior port-
+  // opening technique.
+  port = openPort();
+  //port = new Serial(this, "COM3", 115200);   
+  
+ /* if ( ( define_bot_top == 4 ) && ( define_right_left == 4 ) ){
+   
+    define_bot_top = 10;
+    define_right_left = 8;
+    
+    
+
+    }  */
+    
+    System.out.println("TESTE");
+  
   displays[0] = new int [] {0,define_bot_top,define_right_left};
   // Contador dos leds.
   int contador = 0;
@@ -173,6 +242,7 @@ void setup() {
     contador++;
     
   }
+  System.out.println("TESTE");
   // Top
   for ( int j = 0; j < qtd_bot-1; j++)
   {
@@ -185,52 +255,13 @@ void setup() {
     leds[contador] = new int [] {0,qtd_bot-1,j};
     contador++;
   }
-  println(qtd_side_right);
   // Bot
   for ( int j = 1; j < qtd_bot-1; j++)
   {
     leds[contador] = new int [] {0,j,qtd_side_right-1};
     contador++;
-  }
-    
-  
-  
-  /*leds[0] = new int [] {0,0,1};
-  leds[1] = new int [] {0,0,2};
-  leds[2] = new int [] {0,0,3};
-  leds[3] = new int [] {0,0,0};
-  leds[4] = new int [] {0,1,0};
-  leds[5] = new int [] {0,2,0};*/
-   //leds[0] = new int [] {0,0,1};
-   //leds[1][] = {0,0,1};
-   //leds[2][] = {0,0,1};
-   /*leds[1][1] = 1;
-   leds[2][1] = 1;
-   leds[3][1] = 1;
-   leds[4][1] = 1;
-   leds[5][1] = 1;
-   leds[6][1] = 1;
-   leds[7][1] = 1;
-   leds[8][1] = 1;
-   leds[9][1] = 1;*/
-   
-   //leds[1][0] = 1;
-   
-  /* leds[1][0] = 1;
-   leds[2][0] = 1;
-   leds[3][0] = 1;
-   leds[4][0] = 1;*/
-   
-/*for (int i = 0; i < randoms.length; i++) {
-  randoms[i] = random(100);
-}*/
-  
-  //print(leds[3][0]);
-  
-  /*for (int i = 0; i<qtd_top_led ; i++)
-  {
-    leds[i][0] = 0;
-  }*/
+  } 
+  System.out.println("TESTE");
 
   GraphicsEnvironment     ge;
   GraphicsConfiguration[] gc;
@@ -241,19 +272,7 @@ void setup() {
 
   dh = new DisposeHandler(this); // Init DisposeHandler ASAP
 
-  // Open serial port.  As written here, this assumes the Arduino is the
-  // first/only serial device on the system.  If that's not the case,
-  // change "Serial.list()[0]" to the name of the port to be used:
-  //port = new Serial(this, Serial.list()[2], 115200);
-  // Alternately, in certain situations the following line can be used
-  // to detect the Arduino automatically.  But this works ONLY with SOME
-  // Arduino boards and versions of Processing!  This is so convoluted
-  // to explain, it's easier just to test it yourself and see whether
-  // it works...if not, leave it commented out and use the prior port-
-  // opening technique.
-  //port = openPort();
-  //port = new Serial(this, "COM3", 115200);  
-  
+
   // And finally, to test the software alone without an Arduino connected,
   // don't open a port...just comment out the serial lines above.
 
@@ -353,6 +372,7 @@ void setup() {
     gamma[i][1] = (byte)(f * 240.0);
     gamma[i][2] = (byte)(f * 220.0);
   }
+  
 }
 
 // Open and return serial connection to Arduino running LEDstream code.  This
@@ -366,59 +386,49 @@ void setup() {
 
 Serial openPort() {
   String[] ports;
-  String   ack;
+  String   palavra_teste = "Nada"; 
   int      i, start;
-  Serial   s;
+  Serial   myPort;
 
   ports = Serial.list(); // List of all serial ports/devices on system.
-
+  
   for(i=0; i<ports.length; i++) { // For each serial port...
     System.out.format("Trying serial port %s\n",ports[i]);
-    try {
-      s = new Serial(this, ports[i], 115200);
-    }
-    catch(Exception e) {
-      // Can't open port, probably in use by other software.
-      continue;
-    }
-    // Port open...watch for acknowledgement string...
+    myPort = new Serial(this, ports[i], 115200);
+
     start = millis();
-    while((millis() - start) < timeout) {
-      
-      while (s.available() > 0) {
-
-      String inBuffer = s.readString();  
-  
-      if (inBuffer != null) {
-  
-        println(inBuffer);
-      }
-    }
-      /*if ( s.available() > 0 )
-      {
-         System.out.format("Recebeu serial: %s", s.read());
-      }
-      if(s.available() >= 3)
-      {
-        ack = s.readString();
-        System.out.format("Recebeu serial: %s", ack);
-        if ( ack.contains("Ada\n") )
-        {          
-         System.out.format("Recebeu Ada.");
-         return s; // Got it!
+    while( (millis() - start ) < timeout ) {
+      delay(100);
+      if ( myPort.available() > 0 ){
+        palavra_teste = myPort.readString();
+        System.out.format("Recebendo %s\n", palavra_teste);   
+        String palavra_original = palavra_teste;
+        palavra_teste = palavra_teste.substring(0,3);      
+        if(palavra_teste.equals("Ada")){
+          System.out.format("Palavra encontrada \n");
+          //define_bot_top = int(palavra_original.substring(4,6));
+          //define_right_left = int(palavra_original.substring(7,9));        
+          //System.out.format("TOP %d\n", define_bot_top);  
+          //System.out.format("LEFT %d\n", define_right_left);   
+          //set_inicial_load();
+          return myPort;
         }
-      }       */      
+      }
     }
-    // Connection timed out.  Close port and move on to the next.
-    s.stop();
+    //if(palavra_teste.equals("Ambilight")){
+    //  System.out.format("Porta encontrada \n");
+    //  break;
+    //}else
+    //  System.out.format("Porta não encontrada \n");    
   }
-
   // Didn't locate a device returning the acknowledgment string.
   // Maybe it's out there but running the old LEDstream code, which
   // didn't have the ACK.  Can't say for sure, so we'll take our
   // changes with the first/only serial device out there...
-  return new Serial(this, ports[0], 115200);
+  return new Serial(this, ports[i], 115200);
+  //return myPort;
 }
+
 
 
 // PER_FRAME PROCESSING ------------------------------------------------------
@@ -506,6 +516,22 @@ void draw () {
      (ledColor[i][0] << 16) | (ledColor[i][1] << 8) | ledColor[i][2];
   } 
   
+  if(port != null) port.write(serialData); // Issue data to Arduino
+
+  // Show live preview image(s) - comment out this section if you don't want a preview window.
+  scale(pixelSize);
+  for(i=d=0; d<nDisplays; d++) {
+    preview[d].updatePixels();
+    image(preview[d], i, 0);
+    i += displays[d][1] + 1;
+  }
+  
+  // Comment out if you want no output.
+  //println(frameRate); // How are we doing?
+
+  // Copy LED color data to prior frame array for next pass
+  arraycopy(ledColor, 0, prevColor, 0, ledColor.length);
+  
  /* if ( ada_recived == 0 )
   {
     if (port.available() > 3) {
@@ -528,23 +554,20 @@ void draw () {
    // if(port != null) port.write(serialData); // Issue data to Arduino
   
     // Show live preview image(s)
-    scale(pixelSize);
-    for(i=d=0; d<nDisplays; d++) {
-      preview[d].updatePixels();
-      image(preview[d], i, 0);
-      i += displays[d][1] + 1;
+    //scale(pixelSize);
+    //for(i=d=0; d<nDisplays; d++) {
+    //  preview[d].updatePixels();
+    //  image(preview[d], i, 0);
+    //  i += displays[d][1] + 1;
    // }
   
     //println(frameRate); // How are we doing?
     
-    /*if ( port.available() > 0 )
-    {
-       System.out.format("Recebeu serial: %c", port.read());
-    }*/
+    
   
     // Copy LED color data to prior frame array for next pass
-    arraycopy(ledColor, 0, prevColor, 0, ledColor.length);
-  }
+    //arraycopy(ledColor, 0, prevColor, 0, ledColor.length);
+  //}
 }
 
 
