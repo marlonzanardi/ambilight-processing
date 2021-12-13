@@ -1,1 +1,0 @@
-# ambilight-processing

@@ -406,6 +406,7 @@ Serial openPort() {
         palavra_teste = palavra_teste.substring(0,3);      
         if(palavra_teste.equals("Ada")){
           System.out.format("Palavra encontrada \n");
+          //teste
           //define_bot_top = int(palavra_original.substring(4,6));
           //define_right_left = int(palavra_original.substring(7,9));        
           //System.out.format("TOP %d\n", define_bot_top);  
